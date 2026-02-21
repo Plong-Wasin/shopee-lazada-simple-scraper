@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Product Scraper - Shopee & Lazada</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            padding: 40px;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+        .platform-selector {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        .platform-option {
+            flex: 1;
+            padding: 20px;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+        .platform-option:hover {
+            border-color: #667eea;
+            background: #f8f9ff;
+        }
+        .platform-option.selected {
+            border-color: #667eea;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        .platform-option h3 {
+            margin-bottom: 8px;
+            font-size: 18px;
+        }
+        .platform-option p {
+            font-size: 12px;
+            opacity: 0.8;
+        }
+        .form-group {
+            margin-bottom: 25px;
+        }
+        label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: 600;
+            color: #333;
+            font-size: 14px;
+        }
+        input[type="text"] {
+            width: 100%;
+            padding: 14px 16px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            box-sizing: border-box;
+        }
+        input[type="text"]:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        button {
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+        button:active {
+            transform: translateY(0);
+        }
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .example {
+            margin-top: 25px;
+            padding: 20px;
+            background: #f8f9ff;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+        }
+        .example h3 {
+            margin-top: 0;
+            color: #333;
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
+        .example code {
+            display: block;
+            background: white;
+            padding: 12px;
+            border-radius: 6px;
+            border: 1px solid #e0e0e0;
+            font-size: 11px;
+            word-break: break-all;
+            margin-top: 8px;
+            color: #666;
+        }
+        .loading {
+            display: none;
+            text-align: center;
+            margin-top: 20px;
+        }
+        .loading.active {
+            display: block;
+        }
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .result {
+            display: none;
+            margin-top: 30px;
+            padding: 25px;
+            background: #f8f9ff;
+            border-radius: 12px;
+            border: 1px solid #e0e0e0;
+        }
+        .result.active {
+            display: block;
+        }
+        .result h2 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 20px;
+        }
+        .result-item {
+            display: flex;
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        .result-item:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+        .result-label {
+            flex: 0 0 150px;
+            font-weight: 600;
+            color: #666;
+            font-size: 13px;
+        }
+        .result-value {
+            flex: 1;
+            color: #333;
+            font-size: 13px;
+            word-break: break-word;
+        }
+        .result-value a {
+            color: #667eea;
+            text-decoration: none;
+        }
+        .result-value a:hover {
+            text-decoration: underline;
+        }
+        .error {
+            display: none;
+            margin-top: 20px;
+            padding: 20px;
+            background: #fee;
+            border-radius: 8px;
+            border-left: 4px solid #c33;
+            color: #c33;
+        }
+        .error.active {
+            display: block;
+        }
+        .error h3 {
+            margin-top: 0;
+            margin-bottom: 10px;
+            font-size: 16px;
+        }
+        .image-preview {
+            max-width: 200px;
+            max-height: 200px;
+            border-radius: 8px;
+            margin-top: 10px;
+            border: 1px solid #e0e0e0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🛒 Product Scraper</h1>
+        <p class="subtitle">Extract product data from Shopee and Lazada</p>
+        
+        <div class="platform-selector">
+            <div class="platform-option selected" data-platform="shopee" onclick="selectPlatform('shopee')">
+                <h3>🛍️ Shopee</h3>
+                <p>Scrape products from Shopee.co.th</p>
+            </div>
+            <div class="platform-option" data-platform="lazada" onclick="selectPlatform('lazada')">
+                <h3>🏪 Lazada</h3>
+                <p>Scrape products from Lazada.co.th</p>
+            </div>
+        </div>
+        
+        <form id="scrapeForm" onsubmit="handleSubmit(event)">
+            <div class="form-group">
+                <label for="url">Product URL:</label>
+                <input type="text" id="url" name="url" placeholder="Paste product URL here..." required>
+            </div>
+            <button type="submit" id="submitBtn">🔍 Scrape Product Data</button>
+        </form>
+        
+        <div class="example" id="exampleSection">
+            <h3>Example URL:</h3>
+            <code id="exampleUrl">https://shopee.co.th/Se-ed-(ซีเอ็ด)-หนังสือ-Money-Mastery-มั่งคั่งทั้งชีวิต-i.119383836.23237467185</code>
+        </div>
+        
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p>Scraping product data...</p>
+        </div>
+        
+        <div class="error" id="error">
+            <h3>❌ Error</h3>
+            <p id="errorMessage"></p>
+        </div>
+        
+        <div class="result" id="result">
+            <h2>📦 Product Data</h2>
+            <div id="resultContent"></div>
+        </div>
+    </div>
+
+    <script>
+        let selectedPlatform = 'shopee';
+        
+        const exampleUrls = {
+            shopee: 'https://shopee.co.th/Se-ed-(ซีเอ็ด)-หนังสือ-Money-Mastery-มั่งคั่งทั้งชีวิต-i.119383836.23237467185',
+            lazada: 'https://www.lazada.co.th/products/your-product-url'
+        };
+        
+        function selectPlatform(platform) {
+            selectedPlatform = platform;
+            
+            // Update UI
+            document.querySelectorAll('.platform-option').forEach(option => {
+                option.classList.remove('selected');
+                if (option.dataset.platform === platform) {
+                    option.classList.add('selected');
+                }
+            });
+            
+            // Update example URL
+            document.getElementById('exampleUrl').textContent = exampleUrls[platform];
+        }
+        
+        async function handleSubmit(event) {
+            event.preventDefault();
+            
+            const url = document.getElementById('url').value.trim();
+            if (!url) {
+                showError('Please enter a product URL');
+                return;
+            }
+            
+            // Validate URL based on selected platform
+            if (selectedPlatform === 'shopee' && !url.includes('shopee.co.th')) {
+                showError('Please enter a valid Shopee URL (shopee.co.th)');
+                return;
+            }
+            if (selectedPlatform === 'lazada' && !url.includes('lazada.co.th')) {
+                showError('Please enter a valid Lazada URL (lazada.co.th)');
+                return;
+            }
+            
+            // Show loading
+            document.getElementById('loading').classList.add('active');
+            document.getElementById('submitBtn').disabled = true;
+            document.getElementById('error').classList.remove('active');
+            document.getElementById('result').classList.remove('active');
+            
+            try {
+                const response = await fetch('/api/scrape', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        platform: selectedPlatform,
+                        url: url
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (!response.ok) {
+                    throw new Error(data.error || 'Failed to scrape product');
+                }
+                
+                displayResult(data);
+            } catch (error) {
+                showError(error.message);
+            } finally {
+                document.getElementById('loading').classList.remove('active');
+                document.getElementById('submitBtn').disabled = false;
+            }
+        }
+        
+        function displayResult(response) {
+            const resultContent = document.getElementById('resultContent');
+            
+            // Extract actual data from response
+            const data = response.data || {};
+            
+            const fields = [
+                { label: 'Brand', key: 'brand' },
+                { label: 'Product Name', key: 'product_name' },
+                { label: 'Type', key: 'type' },
+                { label: 'Flavor/Style', key: 'flavor_style' },
+                { label: 'Weight', key: 'weight_g' },
+                { label: 'Price (THB)', key: 'normal_price_thb' },
+                { label: 'Shipping Cost (THB)', key: 'shipping_cost' },
+                { label: 'Product URL', key: 'product_url', isLink: true },
+                { label: 'Image URL', key: 'image_url', isLink: true },
+                { label: 'Meta Description', key: 'meta_description' },
+                { label: 'Additional Notes', key: 'additional_notes' }
+            ];
+            
+            let html = '';
+            
+            // Add image preview if available
+            if (data.image_url) {
+                html += `<div class="result-item">
+                    <div class="result-label">Product Image</div>
+                    <div class="result-value">
+                        <img src="${data.image_url}" alt="Product Image" class="image-preview" onerror="this.style.display='none'">
+                    </div>
+                </div>`;
+            }
+            
+            fields.forEach(field => {
+                const value = data[field.key] || 'N/A';
+                let displayValue = value;
+                
+                if (field.isLink && value && value !== 'N/A') {
+                    displayValue = `<a href="${value}" target="_blank">${value}</a>`;
+                }
+                
+                html += `<div class="result-item">
+                    <div class="result-label">${field.label}</div>
+                    <div class="result-value">${displayValue}</div>
+                </div>`;
+            });
+            
+            resultContent.innerHTML = html;
+            document.getElementById('result').classList.add('active');
+        }
+        
+        function showError(message) {
+            document.getElementById('errorMessage').textContent = message;
+            document.getElementById('error').classList.add('active');
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,16 @@
+services:
+  web-scraper:
+    build: .
+    container_name: shopee-lazada-scraper
+    ports:
+      - "3002:3000"
+    environment:
+      - PORT=3000
+      - NODE_ENV=production
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:3000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
