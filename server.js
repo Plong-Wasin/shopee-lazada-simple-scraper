@@ -1,7 +1,7 @@
 const express = require('express');
 const path = require('path');
-const { scrapeShopee } = require('./scrapers/shopee');
-const { scrapeLazada } = require('./scrapers/lazada');
+const { scrapeShopee, fetchShopeeHtml } = require('./scrapers/shopee');
+const { scrapeLazada, fetchLazadaHtml } = require('./scrapers/lazada');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -81,6 +81,67 @@ app.get('/api/health', (req, res) => {
     status: 'ok',
     message: 'Product Scraper API is running'
   });
+});
+
+// Download HTML endpoint
+app.post('/api/download-html', async (req, res) => {
+  const { platform, url } = req.body;
+
+  // Validate input
+  if (!platform || !url) {
+    return res.status(400).json({
+      error: 'Missing required fields: platform and url'
+    });
+  }
+
+  // Validate platform
+  if (!['shopee', 'lazada'].includes(platform)) {
+    return res.status(400).json({
+      error: 'Invalid platform. Must be either "shopee" or "lazada"'
+    });
+  }
+
+  // Validate URL format
+  try {
+    new URL(url);
+  } catch (error) {
+    return res.status(400).json({
+      error: 'Invalid URL format'
+    });
+  }
+
+  try {
+    let html;
+
+    // Route to appropriate fetch function (not scrape function)
+    if (platform === 'shopee') {
+      if (!url.includes('shopee.co.th')) {
+        return res.status(400).json({
+          error: 'Invalid Shopee URL. Must be from shopee.co.th'
+        });
+      }
+      html = await fetchShopeeHtml(url);
+    } else if (platform === 'lazada') {
+      if (!url.includes('lazada.co.th')) {
+        return res.status(400).json({
+          error: 'Invalid Lazada URL. Must be from lazada.co.th'
+        });
+      }
+      html = await fetchLazadaHtml(url);
+    }
+
+    // Set headers for HTML download
+    res.setHeader('Content-Type', 'text/html; charset=utf-8');
+    res.setHeader('Content-Disposition', `attachment; filename="${platform}-page-${Date.now()}.html"`);
+    
+    // Send the HTML content
+    res.send(html);
+  } catch (error) {
+    console.error('Download HTML error:', error);
+    res.status(500).json({
+      error: error.message || 'Failed to download HTML'
+    });
+  }
 });
 
 // 404 handler

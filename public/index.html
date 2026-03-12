@@ -230,6 +230,28 @@
             margin-top: 10px;
             border: 1px solid #e0e0e0;
         }
+        .download-btn {
+            margin-top: 20px;
+            padding: 12px 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: auto;
+        }
+        .download-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+        .download-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
     </style>
 </head>
 <body>
@@ -274,6 +296,7 @@
         <div class="result" id="result">
             <h2>📦 Product Data</h2>
             <div id="resultContent"></div>
+            <button type="button" class="download-btn" id="downloadHtmlBtn" onclick="downloadHtml()">📥 Download HTML</button>
         </div>
     </div>
 
@@ -346,6 +369,14 @@
                 displayResult(data);
             } catch (error) {
                 showError(error.message);
+                // Show download button even on error so user can debug
+                document.getElementById('result').classList.add('active');
+                document.getElementById('resultContent').innerHTML = `
+                    <div class="result-item">
+                        <div class="result-label">Status</div>
+                        <div class="result-value">Scraping failed - use the download button below to inspect the HTML</div>
+                    </div>
+                `;
             } finally {
                 document.getElementById('loading').classList.remove('active');
                 document.getElementById('submitBtn').disabled = false;
@@ -405,6 +436,60 @@
         function showError(message) {
             document.getElementById('errorMessage').textContent = message;
             document.getElementById('error').classList.add('active');
+        }
+
+        async function downloadHtml() {
+            const url = document.getElementById('url').value.trim();
+            if (!url) {
+                showError('Please enter a product URL first');
+                return;
+            }
+
+            // Disable button and show loading state
+            const downloadBtn = document.getElementById('downloadHtmlBtn');
+            const originalText = downloadBtn.textContent;
+            downloadBtn.disabled = true;
+            downloadBtn.textContent = '⏳ Downloading...';
+
+            try {
+                const response = await fetch('/api/download-html', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        platform: selectedPlatform,
+                        url: url
+                    })
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || 'Failed to download HTML');
+                }
+
+                // Get the blob from the response
+                const blob = await response.blob();
+                
+                // Create a download link
+                const downloadUrl = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = downloadUrl;
+                a.download = `${selectedPlatform}-page-${Date.now()}.html`;
+                document.body.appendChild(a);
+                a.click();
+                
+                // Clean up
+                window.URL.revokeObjectURL(downloadUrl);
+                document.body.removeChild(a);
+
+            } catch (error) {
+                showError(error.message);
+            } finally {
+                // Re-enable button
+                downloadBtn.disabled = false;
+                downloadBtn.textContent = originalText;
+            }
         }
     </script>
 </body>

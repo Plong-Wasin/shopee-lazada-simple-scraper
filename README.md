@@ -31,9 +31,9 @@ The scraper extracts the following product information:
 
 ### Local Development
 
-1. Navigate to the web-scraper directory:
+1. Navigate to the shopee-lazada-simple-scraper directory:
 ```bash
-cd web-scraper
+cd shopee-lazada-simple-scraper
 ```
 
 2. Install dependencies:
@@ -43,9 +43,9 @@ npm install
 
 ### Using Docker
 
-1. Navigate to the web-scraper directory:
+1. Navigate to the shopee-lazada-simple-scraper directory:
 ```bash
-cd web-scraper
+cd shopee-lazada-simple-scraper
 ```
 
 2. Build and run with Docker Compose:

@@ -2,6 +2,28 @@ const axios = require('axios');
 const cheerio = require('cheerio');
 
 /**
+ * Fetch HTML from Lazada URL (for download purposes)
+ * @param {string} url - Lazada product URL
+ * @returns {Promise<string>} - HTML content
+ */
+async function fetchLazadaHtml(url) {
+  try {
+    // Fetch HTML from Lazada
+    const response = await axios.get(url, {
+      headers: {
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+        'Accept-Encoding': 'gzip, deflate, br',
+        'User-Agent': 'Mozilla/5.0 (Linux; Android 6.0.1; Nexus 5X Build/MMB29P) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.7559.132 Mobile Safari/537.36 (compatible; Google-InspectionTool/1.0;)'
+      }
+    });
+
+    return response.data;
+  } catch (error) {
+    throw new Error(`Failed to fetch Lazada HTML: ${error.message}`);
+  }
+}
+
+/**
  * Scrape product data from Lazada URL
  * @param {string} url - Lazada product URL
  * @returns {Promise<Object>} - Product data object
@@ -129,10 +151,13 @@ async function scrapeLazada(url) {
       }
     }
 
+    // Add HTML to the result
+    result.html = html;
+
     return result;
   } catch (error) {
     throw new Error(`Failed to scrape Lazada: ${error.message}`);
   }
 }
 
-module.exports = { scrapeLazada };
+module.exports = { scrapeLazada, fetchLazadaHtml };
