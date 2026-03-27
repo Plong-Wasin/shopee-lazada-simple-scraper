@@ -2,6 +2,10 @@
 
 A web-based scraper for extracting product data from Shopee and Lazada e-commerce platforms. Built with Node.js, Express, and Axios.
 
+⚠️ **Important Notice:** This project is designed and tested specifically for **.co.th** domains (Thailand). It cannot be used with other regional domains such as shopee.tw.
+
+**Note:** This entire project was written by AI. I only provided the concept, principles, and guidance on how to handle specific problems when they arose during development.
+
 ## Features
 
 - 🛍️ Scrape product data from Shopee.co.th
@@ -180,6 +184,17 @@ web-scraper/
 - Shopee data is extracted from embedded JSON in the page
 - Lazada data is extracted using HTML parsing and regex
 - Some fields may be empty depending on the product page structure
+
+### Price Limitations
+
+**Shopee:**
+- ⚠️ Cannot extract product prices from Shopee product pages
+- The scraper can extract all other product information except for the actual price
+
+**Lazada:**
+- ⚠️ Cannot extract the actual/real price from Lazada product pages
+- Only the original/strike-through price (before promotion) can be extracted
+- The current promotional price is not accessible through the scraper
 
 ## Troubleshooting
 
